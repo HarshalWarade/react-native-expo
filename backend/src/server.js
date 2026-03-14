@@ -28,4 +28,8 @@ app.use("/api/posts", postRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-app.listen(ENV.PORT, () => console.log("Server is up and running."));
+if (ENV.NODE_ENV !== "production") {
+  app.listen(ENV.PORT, () => console.log("Server is up and running."));
+}
+
+export default app;
