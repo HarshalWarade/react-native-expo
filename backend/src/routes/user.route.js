@@ -15,7 +15,7 @@ router.get("/profile/:username", getUserProfile);
 
 // update profile => authenticated
 router.put("/profile", protectRoute, updateProfile);
-router.post("/me", protectRoute, getCurrentUser);
+router.get("/me", protectRoute, getCurrentUser);
 router.post("/sync", protectRoute, syncUser);
 router.post("/follow/:targetUserId", protectRoute, followUser);
 
