@@ -3,6 +3,9 @@ import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 
 import userRoutes from "./routes/user.route.js";
+import postRoutes from "./routes/post.route.js";
+import commentRoutes from "./routes/comment.route.js";
+import notificationRoutes from "./routes/notification.route.js";
 
 import { ENV } from "./config/env.js";
 import { connectDatabase } from "./config/db.js";
@@ -20,6 +23,9 @@ app.get("/", (req, res) => {
   res.send("hello from server");
 });
 
-app.use("/api/users", userRoute);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.listen(ENV.PORT, () => console.log("Server is up and running."));
