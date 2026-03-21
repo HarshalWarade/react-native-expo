@@ -13,6 +13,13 @@ export const arcjetMiddleware = async (req, res, next) => {
           message: "Rate limit exceeded. Please try again later.",
         });
       } else if (decision.reason.isBot()) {
+
+        const userAgent = req.headers["user-agent"] || ""
+
+        const isMobileApp = userAgent.includes("Expo") || userAgent.includes("okhttp") || userAgent.includes("CFNetwork") || userAgent === ""
+
+        if(isMobileApp) return next();
+
         return res.status(403).json({
           error: "Bot access denied",
           message: "Automated requests are not allowed.",
