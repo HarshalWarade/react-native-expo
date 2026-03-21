@@ -4,6 +4,12 @@ import asyncHandler from "express-async-handler";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
 
+const generateUsername = (email) => {
+  const base = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "");
+  const suffix = Math.random().toString(36).slice(2, 7);
+  return `${base}_${suffix}`;
+};
+
 export const getUserProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
   const user = await User.findOne({ username });
@@ -36,18 +42,30 @@ export const syncUser = asyncHandler(async (req, res) => {
 
   const clerkUser = await clerkClient.users.getUser(userId);
 
+  const email = clerkUser.emailAddresses[0].emailAddress;
+
   const userData = {
     clerkId: userId,
-    email: clerkUser.emailAddresses[0].emailAddress,
+    email,
     firstName: clerkUser.firstName || "",
-    lastName: clerkUser.lastName || "",
-    username: clerkUser.emailAddresses[0].emailAddress.split("@")[0],
+    lastName: clerkUser.lastName || " ", // Google OAuth often returns null — space avoids required validation
+    username: generateUsername(email),
     profilePicture: clerkUser.imageUrl || "",
   };
 
-  const user = await User.create(userData);
-
-  res.status(201).json({ user, message: "User created successfully" });
+  try {
+    const user = await User.create(userData);
+    return res.status(201).json({ user, message: "User created successfully" });
+  } catch (err) {
+    // Last-resort fallback: if username still collides (astronomically rare),
+    // retry once with a fresh suffix before giving up.
+    if (err.code === 11000 && err.keyPattern?.username) {
+      userData.username = generateUsername(email);
+      const user = await User.create(userData);
+      return res.status(201).json({ user, message: "User created successfully" });
+    }
+    throw err;
+  }
 });
 
 export const getCurrentUser = asyncHandler(async (req, res) => {
